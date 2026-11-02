@@ -14,7 +14,7 @@ public class Publication {
     @Column(nullable = false, length = 600)
     private String title;
 
-    @Column(nullable = false, unique = true, length = 150)
+    @Column(nullable = false, length = 150)
     private String doi;
 
     @Column(nullable = false, length = 600)
@@ -27,10 +27,13 @@ public class Publication {
     private String journal;
 
     @Column(nullable = false, length = 50)
-    private String verificationStatus = "PENDING"; // PENDING, VERIFIED, REJECTED, DISCREPANCY
+    private String verificationStatus = "PENDING"; // VERIFIED, PENDING, REJECTED, DUPLICATE
 
     @Column(columnDefinition = "TEXT")
     private String verificationNotes;
+
+    @Column(name = "citations_count")
+    private int citationsCount = 0;
 
     private LocalDateTime verifiedAt;
 
@@ -38,7 +41,7 @@ public class Publication {
 
     public Publication() {}
 
-    public Publication(String title, String doi, String authors, int publicationYear, String journal, String verificationStatus, String verificationNotes) {
+    public Publication(String title, String doi, String authors, int publicationYear, String journal, String verificationStatus, String verificationNotes, int citationsCount) {
         this.title = title;
         this.doi = doi;
         this.authors = authors;
@@ -46,6 +49,7 @@ public class Publication {
         this.journal = journal;
         this.verificationStatus = verificationStatus != null ? verificationStatus : "PENDING";
         this.verificationNotes = verificationNotes;
+        this.citationsCount = citationsCount;
     }
 
     // Getters and Setters
@@ -72,6 +76,9 @@ public class Publication {
 
     public String getVerificationNotes() { return verificationNotes; }
     public void setVerificationNotes(String verificationNotes) { this.verificationNotes = verificationNotes; }
+
+    public int getCitationsCount() { return citationsCount; }
+    public void setCitationsCount(int citationsCount) { this.citationsCount = citationsCount; }
 
     public LocalDateTime getVerifiedAt() { return verifiedAt; }
     public void setVerifiedAt(LocalDateTime verifiedAt) { this.verifiedAt = verifiedAt; }

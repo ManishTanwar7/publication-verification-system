@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/publications")
@@ -34,18 +35,46 @@ public class PublicationApiController {
     @GetMapping("/metrics")
     public Map<String, Object> getMetrics() {
         Map<String, Object> metrics = new HashMap<>();
-        long total = repository.count();
-        long verified = repository.countByVerificationStatus("VERIFIED") + repository.countByVerificationStatus("ORIGINAL");
-        long pending = repository.countByVerificationStatus("PENDING");
-        long rejected = repository.countByVerificationStatus("REJECTED") + 
-                         repository.countByVerificationStatus("DUPLICATE") + 
-                         repository.countByVerificationStatus("DISCREPANCY");
+        List<Publication> all = repository.findAll();
+
+        long total = all.size();
+        long verified = all.stream().filter(p -> "VERIFIED".equalsIgnoreCase(p.getVerificationStatus()) || "ORIGINAL".equalsIgnoreCase(p.getVerificationStatus())).count();
+        long pending = all.stream().filter(p -> "PENDING".equalsIgnoreCase(p.getVerificationStatus())).count();
+        long rejected = all.stream().filter(p -> "REJECTED".equalsIgnoreCase(p.getVerificationStatus()) || "DUPLICATE".equalsIgnoreCase(p.getVerificationStatus()) || "DISCREPANCY".equalsIgnoreCase(p.getVerificationStatus())).count();
+        long totalCitations = all.stream().mapToLong(Publication::getCitationsCount).sum();
 
         metrics.put("total", total);
         metrics.put("verified", verified);
         metrics.put("pending", pending);
         metrics.put("rejected", rejected);
+        metrics.put("totalCitations", totalCitations);
         return metrics;
+    }
+
+    @GetMapping("/report")
+    public Map<String, Object> generateResearcherReport() {
+        Map<String, Object> report = new HashMap<>();
+        List<Publication> all = repository.findAll();
+
+        long total = all.size();
+        long verified = all.stream().filter(p -> "VERIFIED".equalsIgnoreCase(p.getVerificationStatus()) || "ORIGINAL".equalsIgnoreCase(p.getVerificationStatus())).count();
+        long rejected = all.stream().filter(p -> "REJECTED".equalsIgnoreCase(p.getVerificationStatus()) || "DUPLICATE".equalsIgnoreCase(p.getVerificationStatus())).count();
+        long totalCitations = all.stream().mapToLong(Publication::getCitationsCount).sum();
+
+        // Group by Author
+        Map<String, Long> authorCounts = all.stream()
+                .collect(Collectors.groupingBy(Publication::getAuthors, Collectors.counting()));
+
+        report.put("totalPublications", total);
+        report.put("verifiedPublications", verified);
+        report.put("rejectedDuplicates", rejected);
+        report.put("totalCitations", totalCitations);
+        report.put("acceptanceRate", total > 0 ? Math.round(((double) verified / total) * 100) : 0);
+        report.put("authorSummary", authorCounts);
+        report.put("publications", all);
+        report.put("generatedAt", LocalDateTime.now().toString());
+
+        return report;
     }
 
     @GetMapping("/{id}")
@@ -55,23 +84,51 @@ public class PublicationApiController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Adds a new publication with AUTO-DETECTION:
+     * Automatically verifies if the publication already exists in the global academic database,
+     * checks author information, tracks citations, and AUTO-REJECTS duplicates!
+     */
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Publication publication) {
-        if (publication.getDoi() == null || publication.getDoi().isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "DOI is required."));
-        }
+    public ResponseEntity<?> create(@RequestBody Publication publication,
+                                    @RequestParam(required = false, defaultValue = "false") boolean force) {
         if (publication.getTitle() == null || publication.getTitle().isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Title is required."));
+            return ResponseEntity.badRequest().body(Map.of("error", "Paper Title is required."));
         }
 
-        publication.setDoi(verificationService.normalizeDoi(publication.getDoi()));
+        String title = publication.getTitle().trim();
+        String authors = publication.getAuthors() != null ? publication.getAuthors().trim() : "";
+        int year = publication.getPublicationYear();
+        String doi = publication.getDoi() != null ? verificationService.normalizeDoi(publication.getDoi()) : "";
+        publication.setDoi(doi);
 
-        if (repository.findByDoiIgnoreCase(publication.getDoi()).isPresent()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "A publication with this DOI already exists in the system."));
+        // Check local database for exact DOI duplicate
+        if (!doi.isBlank() && repository.findByDoiIgnoreCase(doi).isPresent() && !force) {
+            return ResponseEntity.badRequest().body(Map.of("error", "AUTO-REJECTED: A publication with this exact DOI already exists in your database!"));
         }
 
+        // AUTO-VERIFICATION against global literature
+        CrossrefVerificationService.PriorArtCheckResult check = verificationService.checkExistingPublications(title, authors, year);
+
+        if (check.isAlreadyExists()) {
+            // Paper already exists in published literature!
+            publication.setVerificationStatus("REJECTED");
+            publication.setVerificationNotes(check.getVerdict());
+            if (check.getTopMatch() != null) {
+                publication.setCitationsCount(check.getTopMatch().getCitations());
+            }
+        } else {
+            publication.setVerificationStatus("VERIFIED");
+            publication.setVerificationNotes(check.getVerdict());
+        }
+
+        publication.setVerifiedAt(LocalDateTime.now());
         Publication saved = repository.save(publication);
-        return ResponseEntity.ok(saved);
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("publication", saved);
+        res.put("checkResult", check);
+        return ResponseEntity.ok(res);
     }
 
     @PutMapping("/{id}")
@@ -84,6 +141,9 @@ public class PublicationApiController {
             existing.setJournal(updated.getJournal());
             existing.setVerificationStatus(updated.getVerificationStatus());
             existing.setVerificationNotes(updated.getVerificationNotes());
+            if (updated.getCitationsCount() > 0) {
+                existing.setCitationsCount(updated.getCitationsCount());
+            }
             return ResponseEntity.ok(repository.save(existing));
         }).orElse(ResponseEntity.notFound().build());
     }
@@ -97,40 +157,38 @@ public class PublicationApiController {
         return ResponseEntity.ok(Map.of("success", true));
     }
 
-    /**
-     * Searches global academic literature to check if a paper title already exists.
-     */
     @GetMapping("/check-existence")
-    public ResponseEntity<?> checkTitleExistence(@RequestParam String title) {
-        try {
-            CrossrefVerificationService.PriorArtCheckResult result = verificationService.checkExistingPublications(title);
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<?> checkTitleExistence(@RequestParam String title,
+                                                 @RequestParam(required = false, defaultValue = "") String authors,
+                                                 @RequestParam(required = false, defaultValue = "0") int year) {
+        CrossrefVerificationService.PriorArtCheckResult result = verificationService.checkExistingPublications(title, authors, year);
+        return ResponseEntity.ok(result);
     }
 
-    /**
-     * Checks if the publication row already exists in published literature, and updates its database status.
-     */
-    @PostMapping("/{id}/check-existence")
-    public ResponseEntity<?> checkPublicationDuplicate(@PathVariable Long id) {
+    @PostMapping("/{id}/auto-verify")
+    public ResponseEntity<?> autoVerifyRow(@PathVariable Long id) {
         return repository.findById(id).map(pub -> {
-            try {
-                CrossrefVerificationService.PriorArtCheckResult result = verificationService.checkExistingPublications(pub.getTitle());
-                String newStatus = result.isAlreadyExists() ? "DUPLICATE" : "ORIGINAL";
-                pub.setVerificationStatus(newStatus);
-                pub.setVerificationNotes(result.getVerdict());
-                pub.setVerifiedAt(LocalDateTime.now());
-                repository.save(pub);
+            CrossrefVerificationService.PriorArtCheckResult result = verificationService.checkExistingPublications(
+                    pub.getTitle(), pub.getAuthors(), pub.getPublicationYear());
 
-                Map<String, Object> response = new HashMap<>();
-                response.put("result", result);
-                response.put("publication", pub);
-                return ResponseEntity.ok(response);
-            } catch (Exception e) {
-                return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            if (result.isAlreadyExists()) {
+                pub.setVerificationStatus("REJECTED");
+                pub.setVerificationNotes(result.getVerdict());
+                if (result.getTopMatch() != null) {
+                    pub.setCitationsCount(result.getTopMatch().getCitations());
+                }
+            } else {
+                pub.setVerificationStatus("VERIFIED");
+                pub.setVerificationNotes(result.getVerdict());
             }
+
+            pub.setVerifiedAt(LocalDateTime.now());
+            repository.save(pub);
+
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("publication", pub);
+            resp.put("result", result);
+            return ResponseEntity.ok(resp);
         }).orElse(ResponseEntity.notFound().build());
     }
 
@@ -139,7 +197,7 @@ public class PublicationApiController {
         try {
             String cleanDoi = verificationService.normalizeDoi(doi);
             if (repository.findByDoiIgnoreCase(cleanDoi).isPresent()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "This DOI is already registered in the system."));
+                return ResponseEntity.badRequest().body(Map.of("error", "This DOI is already registered in your database."));
             }
 
             Publication fetched = verificationService.fetchFromCrossref(cleanDoi);
@@ -149,17 +207,5 @@ public class PublicationApiController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
-    }
-
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<?> updateStatus(@PathVariable Long id, @RequestParam String status, @RequestParam(required = false, defaultValue = "") String notes) {
-        return repository.findById(id).map(pub -> {
-            pub.setVerificationStatus(status.toUpperCase());
-            if (!notes.isBlank()) {
-                pub.setVerificationNotes(notes);
-            }
-            pub.setVerifiedAt(LocalDateTime.now());
-            return ResponseEntity.ok(repository.save(pub));
-        }).orElse(ResponseEntity.notFound().build());
     }
 }

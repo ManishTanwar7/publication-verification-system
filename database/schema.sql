@@ -9,31 +9,28 @@ CREATE DATABASE IF NOT EXISTS research_pub_db
 
 USE research_pub_db;
 
--- Drop table if re-running
 DROP TABLE IF EXISTS publications;
 
 CREATE TABLE publications (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(500) NOT NULL,
-    doi VARCHAR(150) NOT NULL UNIQUE,
-    authors VARCHAR(500) NOT NULL,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(600) NOT NULL,
+    doi VARCHAR(150) NULL,
+    authors VARCHAR(600) NOT NULL,
     publication_year INT NOT NULL,
-    journal VARCHAR(300) NOT NULL,
-    verification_status ENUM('PENDING', 'VERIFIED', 'REJECTED', 'DISCREPANCY') NOT NULL DEFAULT 'PENDING',
+    journal VARCHAR(350) NOT NULL,
+    verification_status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
     verification_notes TEXT NULL,
+    citations_count INT NOT NULL DEFAULT 0,
     verified_at DATETIME NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-    -- Indexes for fast search and filtering
     INDEX idx_doi (doi),
     INDEX idx_status (verification_status),
-    INDEX idx_year (publication_year),
-    FULLTEXT INDEX idx_fulltext_search (title, authors, journal)
+    INDEX idx_year (publication_year)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Sample Seed Publications for Testing
-INSERT INTO publications (title, doi, authors, publication_year, journal, verification_status, verification_notes, verified_at)
+-- Initial Seed Data
+INSERT INTO publications (title, doi, authors, publication_year, journal, verification_status, verification_notes, citations_count, verified_at)
 VALUES 
 (
     'Attention Is All You Need',
@@ -42,7 +39,8 @@ VALUES
     2017,
     'Advances in Neural Information Processing Systems (NeurIPS)',
     'VERIFIED',
-    'Verified via Official Crossref Registry match.',
+    'Official literature verified. Landmark transformer paper.',
+    134200,
     NOW()
 ),
 (
@@ -52,7 +50,8 @@ VALUES
     2016,
     'IEEE Conference on Computer Vision and Pattern Recognition (CVPR)',
     'VERIFIED',
-    'Official DOI verified.',
+    'Official DOI verified in IEEE.',
+    179426,
     NOW()
 ),
 (
@@ -61,7 +60,8 @@ VALUES
     'Jacob Devlin, Ming-Wei Chang, Kenton Lee, Kristina Toutanova',
     2019,
     'NAACL-HLT',
-    'PENDING',
-    'Awaiting review against Crossref/Scholar records.',
-    NULL
+    'VERIFIED',
+    'Official paper verified in NAACL.',
+    84500,
+    NOW()
 );

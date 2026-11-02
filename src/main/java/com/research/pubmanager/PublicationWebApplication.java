@@ -27,7 +27,8 @@ public class PublicationWebApplication {
                         2017,
                         "Advances in Neural Information Processing Systems (NeurIPS)",
                         "VERIFIED",
-                        "Verified against official Crossref Registry records."
+                        "Official literature verified. Landmark transformer paper.",
+                        134200
                 );
                 p1.setVerifiedAt(LocalDateTime.now());
 
@@ -38,7 +39,8 @@ public class PublicationWebApplication {
                         2016,
                         "IEEE CVPR",
                         "VERIFIED",
-                        "Official DOI verified."
+                        "Official paper verified in IEEE.",
+                        179426
                 );
                 p2.setVerifiedAt(LocalDateTime.now());
 
@@ -48,9 +50,11 @@ public class PublicationWebApplication {
                         "Jacob Devlin, Ming-Wei Chang, Kenton Lee, Kristina Toutanova",
                         2019,
                         "NAACL-HLT",
-                        "PENDING",
-                        "Awaiting official review."
+                        "VERIFIED",
+                        "Official paper verified in NAACL.",
+                        84500
                 );
+                p3.setVerifiedAt(LocalDateTime.now());
 
                 repository.save(p1);
                 repository.save(p2);
