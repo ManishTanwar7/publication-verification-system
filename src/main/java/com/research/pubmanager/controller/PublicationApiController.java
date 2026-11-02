@@ -35,9 +35,11 @@ public class PublicationApiController {
     public Map<String, Object> getMetrics() {
         Map<String, Object> metrics = new HashMap<>();
         long total = repository.count();
-        long verified = repository.countByVerificationStatus("VERIFIED");
+        long verified = repository.countByVerificationStatus("VERIFIED") + repository.countByVerificationStatus("ORIGINAL");
         long pending = repository.countByVerificationStatus("PENDING");
-        long rejected = repository.countByVerificationStatus("REJECTED") + repository.countByVerificationStatus("DISCREPANCY");
+        long rejected = repository.countByVerificationStatus("REJECTED") + 
+                         repository.countByVerificationStatus("DUPLICATE") + 
+                         repository.countByVerificationStatus("DISCREPANCY");
 
         metrics.put("total", total);
         metrics.put("verified", verified);
@@ -65,7 +67,7 @@ public class PublicationApiController {
         publication.setDoi(verificationService.normalizeDoi(publication.getDoi()));
 
         if (repository.findByDoiIgnoreCase(publication.getDoi()).isPresent()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "A publication with this DOI already exists."));
+            return ResponseEntity.badRequest().body(Map.of("error", "A publication with this DOI already exists in the system."));
         }
 
         Publication saved = repository.save(publication);
@@ -95,6 +97,43 @@ public class PublicationApiController {
         return ResponseEntity.ok(Map.of("success", true));
     }
 
+    /**
+     * Searches global academic literature to check if a paper title already exists.
+     */
+    @GetMapping("/check-existence")
+    public ResponseEntity<?> checkTitleExistence(@RequestParam String title) {
+        try {
+            CrossrefVerificationService.PriorArtCheckResult result = verificationService.checkExistingPublications(title);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Checks if the publication row already exists in published literature, and updates its database status.
+     */
+    @PostMapping("/{id}/check-existence")
+    public ResponseEntity<?> checkPublicationDuplicate(@PathVariable Long id) {
+        return repository.findById(id).map(pub -> {
+            try {
+                CrossrefVerificationService.PriorArtCheckResult result = verificationService.checkExistingPublications(pub.getTitle());
+                String newStatus = result.isAlreadyExists() ? "DUPLICATE" : "ORIGINAL";
+                pub.setVerificationStatus(newStatus);
+                pub.setVerificationNotes(result.getVerdict());
+                pub.setVerifiedAt(LocalDateTime.now());
+                repository.save(pub);
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("result", result);
+                response.put("publication", pub);
+                return ResponseEntity.ok(response);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            }
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping("/quick-import")
     public ResponseEntity<?> quickImport(@RequestParam String doi) {
         try {
@@ -110,31 +149,6 @@ public class PublicationApiController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
-    }
-
-    @PostMapping("/{id}/verify")
-    public ResponseEntity<?> verifyOnline(@PathVariable Long id) {
-        return repository.findById(id).map(local -> {
-            try {
-                Publication official = verificationService.fetchFromCrossref(local.getDoi());
-                CrossrefVerificationService.VerificationResult result = verificationService.compareAndVerify(local, official);
-
-                String status = result.isMatched() ? "VERIFIED" : "DISCREPANCY";
-                local.setVerificationStatus(status);
-                local.setVerificationNotes(result.getSummary());
-                local.setVerifiedAt(LocalDateTime.now());
-                repository.save(local);
-
-                Map<String, Object> response = new HashMap<>();
-                response.put("matched", result.isMatched());
-                response.put("summary", result.getSummary());
-                response.put("officialRecord", official);
-                response.put("updatedPublication", local);
-                return ResponseEntity.ok(response);
-            } catch (Exception e) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Verification failed: " + e.getMessage()));
-            }
-        }).orElse(ResponseEntity.notFound().build());
     }
 
     @PatchMapping("/{id}/status")
