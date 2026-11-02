@@ -1,8 +1,9 @@
 package com.research.pubmanager.service;
 
-import com.research.pubmanager.model.Publication;
+import com.research.pubmanager.entity.Publication;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -14,10 +15,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Service for querying the official Crossref Registry via REST API
- * to verify and fetch scholarly publication metadata by DOI.
- */
+@Service
 public class CrossrefVerificationService {
 
     private final HttpClient httpClient;
@@ -29,9 +27,6 @@ public class CrossrefVerificationService {
                 .build();
     }
 
-    /**
-     * Cleans and formats a raw DOI string into standard format (e.g., 10.1109/CVPR.2016.90).
-     */
     public String normalizeDoi(String rawDoi) {
         if (rawDoi == null) return "";
         return rawDoi.trim()
@@ -40,14 +35,7 @@ public class CrossrefVerificationService {
                 .trim();
     }
 
-    /**
-     * Queries Crossref REST API for a given DOI.
-     *
-     * @param rawDoi DOI string
-     * @return Publication object populated with official metadata
-     * @throws Exception if not found, network fails, or parse error
-     */
-    public Publication fetchByDoi(String rawDoi) throws Exception {
+    public Publication fetchFromCrossref(String rawDoi) throws Exception {
         String cleanDoi = normalizeDoi(rawDoi);
         if (cleanDoi.isEmpty()) {
             throw new IllegalArgumentException("DOI cannot be empty.");
@@ -58,7 +46,7 @@ public class CrossrefVerificationService {
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(endpoint))
-                .header("User-Agent", "ResearchPubVerificationSystem/1.0 (mailto:support@researchhub.org)")
+                .header("User-Agent", "ResearchPubVerificationWeb/1.0 (mailto:admin@university.edu)")
                 .header("Accept", "application/json")
                 .timeout(Duration.ofSeconds(15))
                 .GET()
@@ -69,7 +57,7 @@ public class CrossrefVerificationService {
         if (response.statusCode() == 404) {
             throw new IllegalArgumentException("DOI not found in the official Crossref registry: " + cleanDoi);
         } else if (response.statusCode() != 200) {
-            throw new RuntimeException("Registry responded with HTTP error code " + response.statusCode());
+            throw new RuntimeException("Crossref API returned HTTP status: " + response.statusCode());
         }
 
         JSONObject root = new JSONObject(response.body());
@@ -83,20 +71,20 @@ public class CrossrefVerificationService {
         }
 
         // 2. Authors
-        List<String> authorList = new ArrayList<>();
+        List<String> authorsList = new ArrayList<>();
         JSONArray authorArray = message.optJSONArray("author");
         if (authorArray != null) {
             for (int i = 0; i < authorArray.length(); i++) {
                 JSONObject a = authorArray.getJSONObject(i);
                 String family = a.optString("family", "");
                 String given = a.optString("given", "");
-                String fullName = (given + " " + family).trim();
-                if (!fullName.isEmpty()) {
-                    authorList.add(fullName);
+                String full = (given + " " + family).trim();
+                if (!full.isEmpty()) {
+                    authorsList.add(full);
                 }
             }
         }
-        String authors = authorList.isEmpty() ? "Not specified" : String.join(", ", authorList);
+        String authors = authorsList.isEmpty() ? "Unknown Authors" : String.join(", ", authorsList);
 
         // 3. Year
         int year = 0;
@@ -115,7 +103,7 @@ public class CrossrefVerificationService {
             }
         }
 
-        // 4. Journal / Container Title
+        // 4. Journal / Conference
         String journal = "N/A";
         JSONArray containers = message.optJSONArray("container-title");
         if (containers != null && containers.length() > 0) {
@@ -127,22 +115,17 @@ public class CrossrefVerificationService {
             }
         }
 
-        return new Publication(0, title, cleanDoi, authors, year, journal, "VERIFIED", "Fetched from Crossref Registry");
+        return new Publication(title, cleanDoi, authors, year, journal, "VERIFIED", "Fetched & Verified from Crossref Registry");
     }
 
-    /**
-     * Compares local publication data against official registry record.
-     */
-    public VerificationReport compareAndVerify(Publication local, Publication official) {
+    public VerificationResult compareAndVerify(Publication local, Publication official) {
         List<String> discrepancies = new ArrayList<>();
 
-        // Check Year
-        if (local.getYear() > 0 && official.getYear() > 0 && local.getYear() != official.getYear()) {
-            discrepancies.add(String.format("Year mismatch: Local entered %d vs Official registry %d", local.getYear(), official.getYear()));
+        if (local.getPublicationYear() > 0 && official.getPublicationYear() > 0 && local.getPublicationYear() != official.getPublicationYear()) {
+            discrepancies.add(String.format("Year mismatch: Local entered %d vs Official registry %d", local.getPublicationYear(), official.getPublicationYear()));
         }
 
-        // Check Title similarity
-        double similarity = calculateStringSimilarity(local.getTitle().toLowerCase(), official.getTitle().toLowerCase());
+        double similarity = calculateSimilarity(local.getTitle().toLowerCase(), official.getTitle().toLowerCase());
         if (similarity < 0.70) {
             discrepancies.add(String.format("Title similarity is low (%.0f%% match).", similarity * 100));
         }
@@ -150,17 +133,17 @@ public class CrossrefVerificationService {
         boolean matched = discrepancies.isEmpty();
         String summary = matched
                 ? "Perfect match found in official Crossref registry."
-                : "Discrepancy detected:\n - " + String.join("\n - ", discrepancies);
+                : "Discrepancy detected:\n- " + String.join("\n- ", discrepancies);
 
-        return new VerificationReport(matched, official, summary);
+        return new VerificationResult(matched, official, summary);
     }
 
-    public static class VerificationReport {
+    public static class VerificationResult {
         private final boolean matched;
         private final Publication officialRecord;
         private final String summary;
 
-        public VerificationReport(boolean matched, Publication officialRecord, String summary) {
+        public VerificationResult(boolean matched, Publication officialRecord, String summary) {
             this.matched = matched;
             this.officialRecord = officialRecord;
             this.summary = summary;
@@ -171,14 +154,14 @@ public class CrossrefVerificationService {
         public String getSummary() { return summary; }
     }
 
-    private double calculateStringSimilarity(String s1, String s2) {
+    private double calculateSimilarity(String s1, String s2) {
         if (s1.equals(s2)) return 1.0;
         int longer = Math.max(s1.length(), s2.length());
         if (longer == 0) return 1.0;
-        return (longer - computeLevenshteinDistance(s1, s2)) / (double) longer;
+        return (longer - computeLevenshtein(s1, s2)) / (double) longer;
     }
 
-    private int computeLevenshteinDistance(String a, String b) {
+    private int computeLevenshtein(String a, String b) {
         int[] costs = new int[b.length() + 1];
         for (int j = 0; j < costs.length; j++) costs[j] = j;
         for (int i = 1; i <= a.length(); i++) {

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Publication Verification & Management System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid fa-graduation-cap text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900 leading-tight">Research Publication Verification System</h1>
+                    <p class="text-xs text-slate-500">Crossref Registry &amp; Scholarly Verification Hub</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button onclick="openQuickImportModal()" class="inline-flex items-center px-3.5 py-2 border border-emerald-600 text-sm font-medium rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition shadow-sm">
+                    <i class="fa-solid fa-bolt mr-2 text-emerald-600"></i> Fast DOI Import
+                </button>
+                <button onclick="openAddModal()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-sm">
+                    <i class="fa-solid fa-plus mr-2"></i> Add Publication
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
+
+        <!-- Metrics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Publications</p>
+                    <p id="statTotal" class="text-2xl font-bold text-slate-900 mt-1">0</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                    <i class="fa-solid fa-book"></i>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Verified Papers</p>
+                    <p id="statVerified" class="text-2xl font-bold text-emerald-600 mt-1">0</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-amber-600 uppercase tracking-wider">Pending Review</p>
+                    <p id="statPending" class="text-2xl font-bold text-amber-600 mt-1">0</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-rose-600 uppercase tracking-wider">Flagged / Rejected</p>
+                    <p id="statRejected" class="text-2xl font-bold text-rose-600 mt-1">0</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter & Search Controls -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="relative flex-1">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+                <input id="searchInput" type="text" placeholder="Search by Title, Author, DOI, or Journal..." 
+                       class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+            </div>
+            <div class="flex items-center space-x-3">
+                <select id="statusFilter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white">
+                    <option value="ALL">All Statuses</option>
+                    <option value="VERIFIED">Verified</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="DISCREPANCY">Discrepancy</option>
+                    <option value="REJECTED">Rejected</option>
+                </select>
+                <button onclick="loadPublications()" class="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-600 transition" title="Refresh">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Publications Table -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200">
+                    <thead class="bg-slate-50 text-xs font-semibold text-slate-500 uppercase tracking-wider text-left">
+                        <tr>
+                            <th class="px-6 py-3.5">ID</th>
+                            <th class="px-6 py-3.5">Paper Title &amp; Journal</th>
+                            <th class="px-6 py-3.5">DOI</th>
+                            <th class="px-6 py-3.5">Authors &amp; Year</th>
+                            <th class="px-6 py-3.5">Status</th>
+                            <th class="px-6 py-3.5 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="publicationsBody" class="divide-y divide-slate-200 text-sm">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="emptyState" class="hidden py-12 text-center text-slate-400">
+                <i class="fa-regular fa-folder-open text-4xl mb-3"></i>
+                <p>No publications found matching your filter criteria.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Quick DOI Import Modal -->
+    <div id="quickImportModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-base">Fast DOI Import</h3>
+                </div>
+                <button onclick="closeModal('quickImportModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="mt-4 space-y-4">
+                <p class="text-xs text-slate-500">Enter a DOI to automatically fetch official metadata (Title, Authors, Year, Journal) from Crossref.</p>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">DOI</label>
+                    <input id="quickDoiInput" type="text" placeholder="e.g. 10.1109/CVPR.2016.90" 
+                           class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button onclick="closeModal('quickImportModal')" class="px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 hover:bg-slate-50">Cancel</button>
+                <button id="btnSubmitQuickImport" onclick="submitQuickImport()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition flex items-center">
+                    <span>Fetch &amp; Import</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Publication Modal -->
+    <div id="pubModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 id="modalTitle" class="font-bold text-slate-900 text-lg">Add Publication</h3>
+                <button onclick="closeModal('pubModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="pubForm" onsubmit="handleSavePublication(event)" class="mt-4 space-y-3">
+                <input type="hidden" id="pubId">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">DOI <span class="text-rose-500">*</span></label>
+                    <div class="flex space-x-2">
+                        <input id="inputDoi" required type="text" placeholder="10.1109/CVPR.2016.90" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <button type="button" onclick="autoFetchForForm()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium border border-slate-300 flex items-center">
+                            <i class="fa-solid fa-wand-magic-sparkles mr-1 text-indigo-600"></i> Auto-Fill
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Paper Title <span class="text-rose-500">*</span></label>
+                    <input id="inputTitle" required type="text" placeholder="Full Title" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Authors</label>
+                    <input id="inputAuthors" type="text" placeholder="e.g. John Doe, Alice Smith" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Publication Year</label>
+                        <input id="inputYear" type="number" placeholder="2023" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Status</label>
+                        <select id="inputStatus" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+                            <option value="PENDING">PENDING</option>
+                            <option value="VERIFIED">VERIFIED</option>
+                            <option value="DISCREPANCY">DISCREPANCY</option>
+                            <option value="REJECTED">REJECTED</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Journal / Conference</label>
+                    <input id="inputJournal" type="text" placeholder="e.g. IEEE Transactions, Nature, NeurIPS" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Verification Notes</label>
+                    <textarea id="inputNotes" rows="2" placeholder="Optional notes or reviewer comments..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                </div>
+                <div class="mt-5 flex justify-end space-x-3 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('pubModal')" class="px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 hover:bg-slate-50">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition shadow-sm">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center space-x-3 text-sm">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastMsg">Message</span>
+    </div>
+
+    <!-- Application JavaScript Logic -->
+    <script>
+        let publications = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPublications();
+            loadMetrics();
+
+            document.getElementById('searchInput').addEventListener('input', debounce(loadPublications, 300));
+            document.getElementById('statusFilter').addEventListener('change', loadPublications);
+        });
+
+        async function loadPublications() {
+            const query = document.getElementById('searchInput').value.trim();
+            const status = document.getElementById('statusFilter').value;
+
+            try {
+                const res = await fetch(`/api/publications?query=${encodeURIComponent(query)}&status=${encodeURIComponent(status)}`);
+                publications = await res.json();
+                renderTable(publications);
+            } catch (err) {
+                showToast('Failed to load publications', 'error');
+            }
+        }
+
+        async function loadMetrics() {
+            try {
+                const res = await fetch('/api/publications/metrics');
+                const data = await res.json();
+                document.getElementById('statTotal').innerText = data.total;
+                document.getElementById('statVerified').innerText = data.verified;
+                document.getElementById('statPending').innerText = data.pending;
+                document.getElementById('statRejected').innerText = data.rejected;
+            } catch (err) {}
+        }
+
+        function renderTable(items) {
+            const tbody = document.getElementById('publicationsBody');
+            const emptyState = document.getElementById('emptyState');
+            tbody.innerHTML = '';
+
+            if (items.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            items.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50/80 transition';
+
+                let badgeClass = 'bg-amber-100 text-amber-700 border-amber-200';
+                let icon = 'fa-clock';
+                if (p.verificationStatus === 'VERIFIED') {
+                    badgeClass = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                    icon = 'fa-circle-check';
+                } else if (p.verificationStatus === 'REJECTED') {
+                    badgeClass = 'bg-rose-100 text-rose-700 border-rose-200';
+                    icon = 'fa-circle-xmark';
+                } else if (p.verificationStatus === 'DISCREPANCY') {
+                    badgeClass = 'bg-orange-100 text-orange-700 border-orange-200';
+                    icon = 'fa-triangle-exclamation';
+                }
+
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-xs text-slate-400 font-mono">#${p.id}</td>
+                    <td class="px-6 py-4">
+                        <div class="font-semibold text-slate-900">${escapeHtml(p.title)}</div>
+                        <div class="text-xs text-slate-500 mt-0.5"><i class="fa-solid fa-book-journal-whills mr-1 text-slate-400"></i>${escapeHtml(p.journal || 'N/A')}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="https://doi.org/${encodeURIComponent(p.doi)}" target="_blank" class="text-xs font-mono text-indigo-600 hover:text-indigo-800 hover:underline">
+                            ${escapeHtml(p.doi)} <i class="fa-solid fa-arrow-up-right-from-square text-[10px] ml-1"></i>
+                        </a>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-slate-800 text-xs">${escapeHtml(p.authors || 'Unknown')}</div>
+                        <span class="inline-block mt-1 text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">${p.publicationYear || 'N/A'}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${badgeClass}">
+                            <i class="fa-solid ${icon} mr-1.5 text-[11px]"></i> ${p.verificationStatus}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right space-x-2">
+                        <button onclick="triggerVerification(${p.id})" title="Verify online via Crossref" class="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition">
+                            <i class="fa-solid fa-globe"></i>
+                        </button>
+                        <button onclick="openEditModal(${p.id})" title="Edit" class="p-1.5 text-slate-600 hover:bg-slate-100 rounded transition">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button onclick="deletePublication(${p.id})" title="Delete" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded transition">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function triggerVerification(id) {
+            showToast('Querying Crossref Registry...', 'info');
+            try {
+                const res = await fetch(`/api/publications/${id}/verify`, { method: 'POST' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Verification request failed');
+
+                showToast(data.matched ? 'Registry match confirmed!' : 'Discrepancy detected and updated!', data.matched ? 'success' : 'warning');
+                loadPublications();
+                loadMetrics();
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        async function submitQuickImport() {
+            const doi = document.getElementById('quickDoiInput').value.trim();
+            if (!doi) return showToast('Please enter a DOI', 'error');
+
+            const btn = document.getElementById('btnSubmitQuickImport');
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Fetching...`;
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/publications/quick-import?doi=${encodeURIComponent(doi)}`, { method: 'POST' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Import failed');
+
+                showToast('Imported & verified successfully!', 'success');
+                closeModal('quickImportModal');
+                document.getElementById('quickDoiInput').value = '';
+                loadPublications();
+                loadMetrics();
+            } catch (err) {
+                showToast(err.message, 'error');
+            } finally {
+                btn.innerHTML = `<span>Fetch &amp; Import</span>`;
+                btn.disabled = false;
+            }
+        }
+
+        async function autoFetchForForm() {
+            const doi = document.getElementById('inputDoi').value.trim();
+            if (!doi) return showToast('Enter a DOI first', 'error');
+
+            showToast('Fetching from Crossref...', 'info');
+            try {
+                const res = await fetch(`https://api.crossref.org/works/${encodeURIComponent(doi)}`);
+                if (!res.ok) throw new Error('DOI not found in registry');
+                const data = await res.json();
+                const msg = data.message;
+
+                if (msg.title && msg.title.length) document.getElementById('inputTitle').value = msg.title[0];
+                if (msg.author) {
+                    const authors = msg.author.map(a => `${a.given || ''} ${a.family || ''}`.trim()).filter(Boolean);
+                    document.getElementById('inputAuthors').value = authors.join(', ');
+                }
+                const date = msg.published || msg.created;
+                if (date && date['date-parts'] && date['date-parts'][0]) {
+                    document.getElementById('inputYear').value = date['date-parts'][0][0];
+                }
+                if (msg['container-title'] && msg['container-title'].length) {
+                    document.getElementById('inputJournal').value = msg['container-title'][0];
+                }
+                document.getElementById('inputStatus').value = 'VERIFIED';
+                document.getElementById('inputNotes').value = 'Metadata auto-fetched from Crossref';
+                showToast('Form auto-filled!', 'success');
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        async function handleSavePublication(e) {
+            e.preventDefault();
+            const id = document.getElementById('pubId').value;
+            const payload = {
+                doi: document.getElementById('inputDoi').value.trim(),
+                title: document.getElementById('inputTitle').value.trim(),
+                authors: document.getElementById('inputAuthors').value.trim(),
+                publicationYear: parseInt(document.getElementById('inputYear').value) || 0,
+                journal: document.getElementById('inputJournal').value.trim(),
+                verificationStatus: document.getElementById('inputStatus').value,
+                verificationNotes: document.getElementById('inputNotes').value.trim()
+            };
+
+            const url = id ? `/api/publications/${id}` : '/api/publications';
+            const method = id ? 'PUT' : 'POST';
+
+            try {
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to save');
+
+                showToast(id ? 'Updated successfully!' : 'Created successfully!', 'success');
+                closeModal('pubModal');
+                loadPublications();
+                loadMetrics();
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        async function deletePublication(id) {
+            if (!confirm('Are you sure you want to delete this publication record?')) return;
+            try {
+                const res = await fetch(`/api/publications/${id}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('Failed to delete');
+                showToast('Deleted successfully', 'success');
+                loadPublications();
+                loadMetrics();
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        function openAddModal() {
+            document.getElementById('pubForm').reset();
+            document.getElementById('pubId').value = '';
+            document.getElementById('modalTitle').innerText = 'Add Publication';
+            document.getElementById('pubModal').classList.remove('hidden');
+        }
+
+        function openEditModal(id) {
+            const pub = publications.find(p => p.id === id);
+            if (!pub) return;
+            document.getElementById('pubId').value = pub.id;
+            document.getElementById('inputDoi').value = pub.doi || '';
+            document.getElementById('inputTitle').value = pub.title || '';
+            document.getElementById('inputAuthors').value = pub.authors || '';
+            document.getElementById('inputYear').value = pub.publicationYear || '';
+            document.getElementById('inputJournal').value = pub.journal || '';
+            document.getElementById('inputStatus').value = pub.verificationStatus || 'PENDING';
+            document.getElementById('inputNotes').value = pub.verificationNotes || '';
+            document.getElementById('modalTitle').innerText = `Edit Publication #${pub.id}`;
+            document.getElementById('pubModal').classList.remove('hidden');
+        }
+
+        function openQuickImportModal() {
+            document.getElementById('quickDoiInput').value = '';
+            document.getElementById('quickImportModal').classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = msg;
+            if (type === 'error') {
+                toastIcon.className = 'fa-solid fa-circle-exclamation text-rose-400';
+            } else if (type === 'info') {
+                toastIcon.className = 'fa-solid fa-circle-info text-blue-400';
+            } else if (type === 'warning') {
+                toastIcon.className = 'fa-solid fa-triangle-exclamation text-amber-400';
+            } else {
+                toastIcon.className = 'fa-solid fa-circle-check text-emerald-400';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+
+        function debounce(func, delay) {
+            let timeout;
+            return (...args) => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func(...args), delay);
+            };
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/[&<>"']/g, m => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+            }[m]));
+        }
+    </script>
+</body>
+</html>
