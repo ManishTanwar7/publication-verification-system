@@ -14,5 +14,5 @@ echo Opening Browser at http://localhost:8080 ...
 start "" "http://localhost:8080"
 
 echo Running Server on Port 8080...
-"%JAVA_EXE%" -jar "%~dp0target\publication-verification-system-1.0.0.jar"
+"%JAVA_EXE%" -jar "%~dp0target\publication-system.jar"
 pause

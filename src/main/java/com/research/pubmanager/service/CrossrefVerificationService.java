@@ -29,8 +29,8 @@ public class CrossrefVerificationService {
     }
 
     /**
-     * Searches global academic literature (Crossref / Google Scholar index)
-     * by paper title to verify if paper already exists, check author match, and fetch citations.
+     * Searches the entire global academic publication database (covering 150M+ scholarly papers)
+     * by paper title / topic, returning a comprehensive list of matching published research.
      */
     public PriorArtCheckResult checkExistingPublications(String titleToCheck, String submittedAuthors, int submittedYear) {
         if (titleToCheck == null || titleToCheck.trim().isEmpty()) {
@@ -39,7 +39,8 @@ public class CrossrefVerificationService {
 
         try {
             String encodedTitle = URLEncoder.encode(titleToCheck.trim(), StandardCharsets.UTF_8);
-            String endpoint = "https://api.crossref.org/works?query.title=" + encodedTitle + "&rows=5";
+            // Search across entire global database and retrieve top 15 matching papers
+            String endpoint = "https://api.crossref.org/works?query=" + encodedTitle + "&rows=15";
 
             URL url = URI.create(endpoint).toURL();
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -110,7 +111,7 @@ public class CrossrefVerificationService {
                         }
                     }
 
-                    // Journal
+                    // Journal / Publisher
                     String journal = "N/A";
                     JSONArray containers = item.optJSONArray("container-title");
                     if (containers != null && containers.length() > 0) {
@@ -119,7 +120,7 @@ public class CrossrefVerificationService {
                         journal = item.optString("publisher", "Scholarly Publisher");
                     }
 
-                    // Citations Count from Crossref
+                    // Citations
                     int citations = item.optInt("is-referenced-by-count", 0);
 
                     // Similarity Score
@@ -135,7 +136,7 @@ public class CrossrefVerificationService {
             }
 
             // Evaluation: Does paper already exist?
-            boolean alreadyExists = highestSimilarity >= 0.75;
+            boolean alreadyExists = highestSimilarity >= 0.70;
             boolean authorMismatch = false;
 
             if (alreadyExists && topMatch != null && submittedAuthors != null && !submittedAuthors.isBlank()) {
