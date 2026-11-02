@@ -1,47 +1,77 @@
-# Research Publication Verification & Management Web System
+# Research Publication Verification & Management System
 
-A modern cloud-ready web application built with **Java (Spring Boot 3)**, **Crossref REST API**, and **Tailwind CSS**, designed for verifying scholarly research publications (Title, DOI, Authors, Year, Journal) and managing academic records.
+> **Automated Global Duplicate Detection, Author Verification, and Real-Time Citation Tracking**
+
+[![Live Demo on Vercel](https://img.shields.io/badge/Live%20Demo-Vercel-success?style=for-the-badge&logo=vercel)](https://publication-verification-system.vercel.app/)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/ManishTanwar7/publication-verification-system)
+[![Project Report](https://img.shields.io/badge/Project%20Report-Documentation-blue?style=for-the-badge&logo=googledocs)](docs/PROJECT_REPORT.md)
+
+---
+
+## 🌐 Live Web Application
+- **URL**: [https://publication-verification-system.vercel.app/](https://publication-verification-system.vercel.app/)
+- **Comprehensive Academic Report**: [Read the Full Project Report with Images & Appendix](docs/PROJECT_REPORT.md)
 
 ---
 
 ## 🌟 Key Features
-- **🌐 Full Web Interface**: Responsive dashboard accessible on desktop, tablet, and mobile.
-- **⚡ Fast DOI Auto-Import**: Enter any DOI (e.g. `10.1109/CVPR.2016.90`) to automatically fetch official title, authors, year, and container from the Crossref registry.
-- **🔍 Automated Online Verification**: Compares submitted data against the official publisher registry with fuzzy title matching and discrepancy alerts.
-- **📊 Real-Time Metric Cards**: Instant summary of Total, Verified, Pending, and Discrepancy counts.
-- **🔎 Real-Time Search & Status Filtering**: Instant search across Title, Authors, DOI, and Journal.
-- **☁️ Cloud Ready for Render**: Pre-configured with a multi-stage `Dockerfile` and `render.yaml`.
+
+1. **🚨 Auto-Duplicate Rejection (150M+ Scholarly Records)**:
+   - Queries Crossref / Google Scholar registries in real time.
+   - Computes mathematical string similarity using the **Levenshtein Distance Algorithm**.
+   - If similarity is $\ge 70\%$, the submission is **automatically rejected** as a duplicate paper.
+2. **🔎 Standalone Title Existence Checker**:
+   - Check any paper title before submitting to view top 15 matching papers, authors, publication years, similarity percentages, and real-time citations.
+3. **👥 Author Identity Verification**:
+   - Detects author mismatches and predatory re-submissions by displaying registered authors from global literature.
+4. **📈 Real-Time Citation Tracking**:
+   - Dynamically tracks citation counts (`is-referenced-by-count`) from the global scholarly index.
+5. **📑 Printable Researcher Performance Reports**:
+   - Generates summary statistics (Total Papers, Verified, Auto-Rejected, Total Citations, Author breakdown) with one-click **Print / Export PDF**.
+6. **💾 Dual-Persistence Storage**:
+   - Automatic browser local storage persistence + export to MySQL SQL DDL (`database/schema.sql`).
+7. **🖥️ Multi-Platform Deployment**:
+   - **Cloud Web Dashboard**: Vercel serverless deployment.
+   - **Enterprise Backend**: Java Spring Boot 3 + MySQL REST API.
+   - **Desktop GUI**: Native JavaFX 21 desktop application.
 
 ---
 
-## 🚀 Deploying to Render.com (Free & Fast)
+## 📁 Project Structure
 
-1. **Push to GitHub**:
-   Make sure this project is pushed to your GitHub repository:
-   `https://github.com/ManishTanwar7/publication-verification-system`
-
-2. **Open Render**:
-   - Go to [dashboard.render.com](https://dashboard.render.com) and log in with your GitHub account.
-
-3. **Create New Web Service**:
-   - Click **New +** → **Web Service**.
-   - Select **Build and deploy from a Git repository**.
-   - Connect and choose **`publication-verification-system`**.
-
-4. **Configure Settings**:
-   - **Language / Runtime**: Choose **Docker** (Render will automatically detect the `Dockerfile`).
-   - **Instance Type**: Select **Free**.
-   - Click **Deploy Web Service**!
-
-Render will build the Docker container and provide a live URL like:
-`https://publication-verification-system.onrender.com`!
+```
+publication-verification-system/
+├── index.html                       # Cloud Web Dashboard (Vercel Root)
+├── database/
+│   └── schema.sql                   # MySQL Database Schema & Seed Data
+├── docs/
+│   ├── PROJECT_REPORT.md            # Comprehensive Academic Report
+│   └── images/                      # System Screenshots & Figures
+├── run-app.bat                      # Spring Boot Local Launcher (Port 8081)
+├── run-javafx.bat                   # Native JavaFX Desktop GUI Launcher
+├── pom.xml                          # Maven Build Configuration
+└── src/                             # Spring Boot & JavaFX Source Code
+```
 
 ---
 
-## 💻 Local Testing (Optional)
+## 💻 Local Setup & Execution
 
-If running locally with Maven:
+### 1. MySQL Database Setup
+Open **MySQL Workbench** or command line and run:
+```sql
+SOURCE database/schema.sql;
+```
+
+### 2. Spring Boot Web Server (Port 8081)
+Double-click `run-app.bat` or run:
 ```bash
 mvn spring-boot:run
 ```
-Then open: `http://localhost:8080` in your web browser.
+Then visit: `http://localhost:8081`
+
+### 3. Native JavaFX Desktop Application
+Double-click `run-javafx.bat` or run:
+```bash
+mvn javafx:run
+```
