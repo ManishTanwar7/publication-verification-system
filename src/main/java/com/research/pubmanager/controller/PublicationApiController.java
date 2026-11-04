@@ -125,6 +125,9 @@ public class PublicationApiController {
         publication.setVerifiedAt(LocalDateTime.now());
         Publication saved = repository.save(publication);
 
+        // Auto-update schema.sql file on disk
+        appendToSchemaSql(saved);
+
         Map<String, Object> res = new HashMap<>();
         res.put("publication", saved);
         res.put("checkResult", check);
@@ -203,9 +206,32 @@ public class PublicationApiController {
             Publication fetched = verificationService.fetchFromCrossref(cleanDoi);
             fetched.setVerifiedAt(LocalDateTime.now());
             Publication saved = repository.save(fetched);
+            appendToSchemaSql(saved);
             return ResponseEntity.ok(saved);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    private void appendToSchemaSql(Publication p) {
+        try {
+            java.nio.file.Path path = java.nio.file.Paths.get("database/schema.sql");
+            if (java.nio.file.Files.exists(path)) {
+                String title = p.getTitle() != null ? p.getTitle().replace("'", "''") : "";
+                String doi = p.getDoi() != null ? p.getDoi().replace("'", "''") : "";
+                String authors = p.getAuthors() != null ? p.getAuthors().replace("'", "''") : "";
+                String journal = p.getJournal() != null ? p.getJournal().replace("'", "''") : "General Conference";
+                String notes = p.getVerificationNotes() != null ? p.getVerificationNotes().replace("'", "''") : "";
+
+                String insert = String.format(
+                    "\nINSERT INTO publications (title, doi, authors, publication_year, journal, verification_status, verification_notes, citations_count, verified_at)\n" +
+                    "VALUES ('%s', '%s', '%s', %d, '%s', '%s', '%s', %d, NOW());\n",
+                    title, doi, authors, p.getPublicationYear(), journal, p.getVerificationStatus(), notes, p.getCitationsCount()
+                );
+                java.nio.file.Files.writeString(path, insert, java.nio.charset.StandardCharsets.UTF_8, java.nio.file.StandardOpenOption.APPEND);
+            }
+        } catch (Exception e) {
+            System.err.println("Notice: could not auto-append to schema.sql: " + e.getMessage());
         }
     }
 }

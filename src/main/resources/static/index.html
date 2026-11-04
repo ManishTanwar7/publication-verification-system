@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -304,7 +304,7 @@
 
     <!-- Client-Side Architecture & Crossref Live Database Engine -->
     <script>
-                const STORAGE_KEY = 'pub_system_publications_v4';
+                const STORAGE_KEY = 'pub_system_publications_v5';
 
         const DEFAULT_PUBLICATIONS = [
             {
@@ -882,16 +882,19 @@
         ];
 
         function getStoredPublications() {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PUBLICATIONS));
-                return DEFAULT_PUBLICATIONS;
-            }
             try {
-                return JSON.parse(raw);
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length >= 20) {
+                        return parsed;
+                    }
+                }
             } catch (e) {
-                return DEFAULT_PUBLICATIONS;
+                console.warn('LocalStorage parse error:', e);
             }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PUBLICATIONS));
+            return DEFAULT_PUBLICATIONS;
         }
 
         function saveStoredPublications(list) {
@@ -946,7 +949,6 @@
                         if (Array.isArray(dbList) && dbList.length > 0) {
                             saveStoredPublications(dbList);
                             renderTable();
-            detectBackend();
                         }
                         return;
                     }
@@ -964,40 +966,58 @@
                 return showToast('No publications to export', 'error');
             }
 
-            let sql = `-- ====================================================================\n`;
-            sql += `-- Exported from Research Publication Verification System\n`;
-            sql += `-- Database: research_pub_db (Compatible with MySQL Workbench)\n`;
-            sql += `-- Total Publications: ${list.length}\n`;
+            let sql = `-- =====================================================================\n`;
+            sql += `-- Research Publication Verification & Management System - Database DDL\n`;
+            sql += `-- Updated schema.sql containing all ${list.length} current publications\n`;
             sql += `-- Generated: ${new Date().toLocaleString()}\n`;
-            sql += `-- ====================================================================\n\n`;
+            sql += `-- =====================================================================\n\n`;
+            sql += `CREATE DATABASE IF NOT EXISTS research_pub_db \n    CHARACTER SET utf8mb4 \n    COLLATE utf8mb4_unicode_ci;\n\n`;
             sql += `USE research_pub_db;\n\n`;
-            sql += `INSERT INTO publications (title, doi, authors, publication_year, journal, verification_status, verification_notes, citations_count, verified_at)\nVALUES\n`;
+            sql += `DROP TABLE IF EXISTS publications;\n\n`;
+            sql += `CREATE TABLE publications (\n`;
+            sql += `    id BIGINT AUTO_INCREMENT PRIMARY KEY,\n`;
+            sql += `    title VARCHAR(600) NOT NULL,\n`;
+            sql += `    doi VARCHAR(150) NULL,\n`;
+            sql += `    authors VARCHAR(600) NOT NULL,\n`;
+            sql += `    publication_year INT NOT NULL,\n`;
+            sql += `    journal VARCHAR(350) NOT NULL,\n`;
+            sql += `    verification_status VARCHAR(50) NOT NULL DEFAULT 'PENDING',\n`;
+            sql += `    verification_notes TEXT NULL,\n`;
+            sql += `    citations_count INT NOT NULL DEFAULT 0,\n`;
+            sql += `    verified_at DATETIME NULL,\n`;
+            sql += `    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n\n`;
+            sql += `    INDEX idx_doi (doi),\n`;
+            sql += `    INDEX idx_status (verification_status),\n`;
+            sql += `    INDEX idx_year (publication_year)\n`;
+            sql += `) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+            sql += `INSERT INTO publications (id, title, doi, authors, publication_year, journal, verification_status, verification_notes, citations_count, verified_at)\nVALUES\n`;
 
-            const rows = list.map(p => {
+            const rows = list.map((p, idx) => {
                 const t = (p.title || '').replace(/'/g, "''");
                 const d = (p.doi || '').replace(/'/g, "''");
                 const a = (p.authors || '').replace(/'/g, "''");
-                const j = (p.journal || '').replace(/'/g, "''");
+                const j = (p.journal || 'General Conference').replace(/'/g, "''");
                 const n = (p.verificationNotes || '').replace(/'/g, "''");
                 const y = parseInt(p.publicationYear) || 2026;
                 const c = parseInt(p.citationsCount) || 0;
                 const s = p.verificationStatus || 'PENDING';
-                return `('${t}', '${d}', '${a}', ${y}, '${j}', '${s}', '${n}', ${c}, NOW())`;
+                const idVal = p.id || (idx + 1);
+                return `(${idVal}, '${t}', '${d}', '${a}', ${y}, '${j}', '${s}', '${n}', ${c}, NOW())`;
             });
 
-            sql += rows.join(',\n') + ';\n\nSELECT COUNT(*) AS total_publications FROM publications;\n';
+            sql += rows.join(',\n') + ';\n\nSELECT COUNT(*) AS total_records FROM publications;\n';
 
             const blob = new Blob([sql], { type: 'text/sql;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `mysql_publications_sync_${new Date().toISOString().slice(0, 10)}.sql`;
+            a.download = `schema.sql`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
 
-            showToast('ðŸ“¥ Downloaded MySQL Sync SQL script! Run in MySQL Workbench.', 'success');
+            showToast('📥 Downloaded updated schema.sql with all publications!', 'success');
         }
 
         function renderTable() {
@@ -1168,7 +1188,6 @@
                 }
                 saveStoredPublications(list);
                 renderTable();
-            detectBackend();
             } catch (err) {
                 showToast(err.message, 'error');
             }
@@ -1270,7 +1289,7 @@
                 if (check.alreadyExists) {
                     status = 'REJECTED';
                     if (check.topMatch) citations = check.topMatch.citations;
-                    alert('âš ï¸ AUTO-REJECTED DUPLICATE!\n\nThis paper is already published in global literature:\n\n' + check.verdict);
+                    alert('ALERT: Duplicate paper detected in literature! Auto-rejected duplicate.');
                 } else {
                     showToast('âœ… Saved & verified as original research!', 'success');
                 }
@@ -1305,7 +1324,6 @@
                 saveStoredPublications(list);
                 closeModal('pubModal');
                 renderTable();
-            detectBackend();
 
             } catch (err) {
                 alert('Error: ' + err.message);
@@ -1368,7 +1386,6 @@
             saveStoredPublications(list);
             showToast('Deleted successfully', 'success');
             renderTable();
-            detectBackend();
         }
 
         function openAddModal() {
