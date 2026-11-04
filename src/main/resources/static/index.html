@@ -30,6 +30,12 @@
                 </div>
             </div>
             <div class="flex items-center space-x-3">
+                <span id="dbStatusBadge" class="hidden sm:inline-flex items-center text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200" title="Cloud mode. Start run-app.bat for direct MySQL sync.">
+                    <span id="dbStatusText">☁️ Cloud Mode</span>
+                </span>
+                <button onclick="exportToMySQLScript()" class="inline-flex items-center px-3.5 py-2 border border-emerald-300 text-sm font-semibold rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition shadow-sm" title="Download updated schema.sql containing all publications ready to import into MySQL Workbench">
+                    <i class="fa-solid fa-database mr-2 text-emerald-600"></i> Export to MySQL (.sql)
+                </button>
                 <button onclick="openResearcherReportModal()" class="inline-flex items-center px-3.5 py-2 border border-purple-600 text-sm font-semibold rounded-lg text-purple-700 bg-purple-50 hover:bg-purple-100 transition shadow-sm">
                     <i class="fa-solid fa-file-lines mr-2 text-purple-600"></i> Researcher Report
                 </button>
@@ -932,6 +938,7 @@
 
             const endpoints = [
                 '/api/publications',
+                'http://localhost:8080/api/publications',
                 'http://localhost:8081/api/publications'
             ];
 
@@ -942,7 +949,7 @@
                         API_BASE_URL = ep.replace('/api/publications', '');
                         isBackendLive = true;
                         badge.className = 'hidden sm:inline-flex items-center text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200';
-                        text.innerHTML = 'ðŸŸ¢ MySQL Live Sync';
+                        text.innerHTML = '🟢 MySQL Live Sync';
                         badge.title = 'Connected directly to MySQL database on localhost:8081';
 
                         const dbList = await res.json();
@@ -1152,11 +1159,11 @@
             const alreadyExists = highestSim >= 0.70;
             let verdict = '';
             if (highestSim >= 0.85) {
-                verdict = `ðŸš¨ EXACT DUPLICATE DETECTED (${Math.round(highestSim * 100)}% Match)! A publication titled "${topMatch.title}" was already published in ${topMatch.journal} (${topMatch.year}) with ${Number(topMatch.citations).toLocaleString()} citations!`;
+                verdict = `🚨 EXACT DUPLICATE DETECTED (${Math.round(highestSim * 100)}% Match)! A publication titled "${topMatch.title}" was already published in ${topMatch.journal} (${topMatch.year}) with ${Number(topMatch.citations).toLocaleString()} citations!`;
             } else if (highestSim >= 0.70) {
-                verdict = `ðŸš¨ HIGH SIMILARITY DETECTED (${Math.round(highestSim * 100)}% Match). Similar research is already published by ${topMatch.authors} (${topMatch.year}).`;
+                verdict = `🚨 HIGH SIMILARITY DETECTED (${Math.round(highestSim * 100)}% Match). Similar research is already published by ${topMatch.authors} (${topMatch.year}).`;
             } else {
-                verdict = `âœ… ORIGINAL RESEARCH: No duplicate found in global academic registries. Eligible to publish!`;
+                verdict = `✅ ORIGINAL RESEARCH: No duplicate found in global academic registries. Eligible to publish!`;
             }
 
             return {
@@ -1180,11 +1187,11 @@
                     pub.verificationStatus = 'REJECTED';
                     pub.verificationNotes = result.verdict;
                     if (result.topMatch) pub.citationsCount = result.topMatch.citations;
-                    showToast('ðŸš¨ Auto-Rejected: Duplicate paper detected!', 'error');
+                    showToast('🚨 Auto-Rejected: Duplicate paper detected!', 'error');
                 } else {
                     pub.verificationStatus = 'VERIFIED';
                     pub.verificationNotes = result.verdict;
-                    showToast('âœ… Verified: Original work approved!', 'success');
+                    showToast('✅ Verified: Original work approved!', 'success');
                 }
                 saveStoredPublications(list);
                 renderTable();
@@ -1224,12 +1231,12 @@
                 if (data.alreadyExists) {
                     verdictBox.className = 'p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-900';
                     verdictIcon.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-600 text-xl"></i>`;
-                    verdictTitle.innerText = `ðŸš¨ AUTO-REJECT: PUBLICATION ALREADY EXISTS (${data.maxSimilarityPercentage}% MATCH)`;
+                    verdictTitle.innerText = `🚨 AUTO-REJECT: PUBLICATION ALREADY EXISTS (${data.maxSimilarityPercentage}% MATCH)`;
                     verdictMessage.innerText = data.verdict;
                 } else {
                     verdictBox.className = 'p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900';
                     verdictIcon.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 text-xl"></i>`;
-                    verdictTitle.innerText = `âœ… NO DUPLICATE FOUND - ORIGINAL RESEARCH`;
+                    verdictTitle.innerText = `✅ NO DUPLICATE FOUND - ORIGINAL RESEARCH`;
                     verdictMessage.innerText = data.verdict;
                 }
 
@@ -1245,7 +1252,7 @@
                                 <div class="text-slate-600 mt-0.5"><span class="font-medium">Authors:</span> ${escapeHtml(m.authors)}</div>
                                 <div class="text-slate-500 mt-0.5">
                                     <span class="font-medium">Published:</span> ${m.year || 'N/A'} in <span class="italic">${escapeHtml(m.journal)}</span>
-                                    â€¢ Citations: <span class="font-bold text-indigo-600">${Number(m.citations).toLocaleString()}</span>
+                                    • Citations: <span class="font-bold text-indigo-600">${Number(m.citations).toLocaleString()}</span>
                                 </div>
                             </div>
                             <div class="text-right flex-shrink-0">
@@ -1277,6 +1284,29 @@
             btn.disabled = true;
 
             try {
+                if (isBackendLive && API_BASE_URL !== undefined && !id) {
+                    try {
+                        const payload = { title, doi, authors, publicationYear: year, journal };
+                        const apiRes = await fetch(`${API_BASE_URL}/api/publications`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (apiRes.ok) {
+                            showToast('✅ Saved directly into MySQL database & schema.sql updated on disk!', 'success');
+                            const refresh = await fetch(`${API_BASE_URL}/api/publications`);
+                            if (refresh.ok) {
+                                const dbList = await refresh.json();
+                                saveStoredPublications(dbList);
+                                closeModal('pubModal');
+                                renderTable();
+                                return;
+                            }
+                        }
+                    } catch(errApi) {
+                        console.warn('Backend live save failed, falling back to local mode:', errApi);
+                    }
+                }
                 const list = getStoredPublications();
 
                 // Live check against literature
@@ -1291,7 +1321,7 @@
                     if (check.topMatch) citations = check.topMatch.citations;
                     alert('ALERT: Duplicate paper detected in literature! Auto-rejected duplicate.');
                 } else {
-                    showToast('âœ… Saved & verified as original research!', 'success');
+                    showToast('✅ Saved & verified as original research!', 'success');
                 }
 
                 if (id) {
@@ -1367,7 +1397,7 @@
                 item.innerHTML = `
                     <div>
                         <div class="font-semibold text-slate-900">${escapeHtml(p.title)}</div>
-                        <div class="text-slate-500">${escapeHtml(p.authors)} (${p.publicationYear}) â€¢ Citations: ${Number(p.citationsCount || 0).toLocaleString()}</div>
+                        <div class="text-slate-500">${escapeHtml(p.authors)} (${p.publicationYear}) • Citations: ${Number(p.citationsCount || 0).toLocaleString()}</div>
                     </div>
                     <span class="px-2 py-0.5 rounded text-[11px] font-bold ${p.verificationStatus === 'VERIFIED' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
                         ${p.verificationStatus}
