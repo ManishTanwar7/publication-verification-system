@@ -900,6 +900,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             renderTable();
+            detectBackend();
             document.getElementById('searchInput').addEventListener('input', renderTable);
             document.getElementById('statusFilter').addEventListener('change', renderTable);
         });
@@ -916,6 +917,87 @@
             document.getElementById('statRejected').innerText = rejected;
             document.getElementById('statPending').innerText = pending;
             document.getElementById('statCitations').innerText = Number(citations).toLocaleString();
+        }
+
+        let API_BASE_URL = '';
+        let isBackendLive = false;
+
+        async function detectBackend() {
+            const badge = document.getElementById('dbStatusBadge');
+            const text = document.getElementById('dbStatusText');
+            if (!badge || !text) return;
+
+            const endpoints = [
+                '/api/publications',
+                'http://localhost:8081/api/publications'
+            ];
+
+            for (const ep of endpoints) {
+                try {
+                    const res = await fetch(ep, { method: 'GET', headers: { 'Accept': 'application/json' } });
+                    if (res.ok) {
+                        API_BASE_URL = ep.replace('/api/publications', '');
+                        isBackendLive = true;
+                        badge.className = 'hidden sm:inline-flex items-center text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200';
+                        text.innerHTML = 'ðŸŸ¢ MySQL Live Sync';
+                        badge.title = 'Connected directly to MySQL database on localhost:8081';
+
+                        const dbList = await res.json();
+                        if (Array.isArray(dbList) && dbList.length > 0) {
+                            saveStoredPublications(dbList);
+                            renderTable();
+            detectBackend();
+                        }
+                        return;
+                    }
+                } catch (e) {}
+            }
+
+            badge.className = 'hidden sm:inline-flex items-center text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200';
+            text.innerHTML = 'â˜ï¸ Cloud Mode';
+            badge.title = 'Running on Vercel Edge. Use "Export to MySQL" to download SQL or run run-app.bat for direct live MySQL sync.';
+        }
+
+        function exportToMySQLScript() {
+            const list = getStoredPublications();
+            if (!list || !list.length) {
+                return showToast('No publications to export', 'error');
+            }
+
+            let sql = `-- ====================================================================\n`;
+            sql += `-- Exported from Research Publication Verification System\n`;
+            sql += `-- Database: research_pub_db (Compatible with MySQL Workbench)\n`;
+            sql += `-- Total Publications: ${list.length}\n`;
+            sql += `-- Generated: ${new Date().toLocaleString()}\n`;
+            sql += `-- ====================================================================\n\n`;
+            sql += `USE research_pub_db;\n\n`;
+            sql += `INSERT INTO publications (title, doi, authors, publication_year, journal, verification_status, verification_notes, citations_count, verified_at)\nVALUES\n`;
+
+            const rows = list.map(p => {
+                const t = (p.title || '').replace(/'/g, "''");
+                const d = (p.doi || '').replace(/'/g, "''");
+                const a = (p.authors || '').replace(/'/g, "''");
+                const j = (p.journal || '').replace(/'/g, "''");
+                const n = (p.verificationNotes || '').replace(/'/g, "''");
+                const y = parseInt(p.publicationYear) || 2026;
+                const c = parseInt(p.citationsCount) || 0;
+                const s = p.verificationStatus || 'PENDING';
+                return `('${t}', '${d}', '${a}', ${y}, '${j}', '${s}', '${n}', ${c}, NOW())`;
+            });
+
+            sql += rows.join(',\n') + ';\n\nSELECT COUNT(*) AS total_publications FROM publications;\n';
+
+            const blob = new Blob([sql], { type: 'text/sql;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `mysql_publications_sync_${new Date().toISOString().slice(0, 10)}.sql`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast('ðŸ“¥ Downloaded MySQL Sync SQL script! Run in MySQL Workbench.', 'success');
         }
 
         function renderTable() {
@@ -1086,6 +1168,7 @@
                 }
                 saveStoredPublications(list);
                 renderTable();
+            detectBackend();
             } catch (err) {
                 showToast(err.message, 'error');
             }
@@ -1187,7 +1270,7 @@
                 if (check.alreadyExists) {
                     status = 'REJECTED';
                     if (check.topMatch) citations = check.topMatch.citations;
-                verificationNotes: "[DUPLICATE DETECTED]!\n\nThis paper is already published in global literature:\n\n' + check.verdict);
+                    alert('âš ï¸ AUTO-REJECTED DUPLICATE!\n\nThis paper is already published in global literature:\n\n' + check.verdict);
                 } else {
                     showToast('âœ… Saved & verified as original research!', 'success');
                 }
@@ -1222,6 +1305,7 @@
                 saveStoredPublications(list);
                 closeModal('pubModal');
                 renderTable();
+            detectBackend();
 
             } catch (err) {
                 alert('Error: ' + err.message);
@@ -1284,6 +1368,7 @@
             saveStoredPublications(list);
             showToast('Deleted successfully', 'success');
             renderTable();
+            detectBackend();
         }
 
         function openAddModal() {
