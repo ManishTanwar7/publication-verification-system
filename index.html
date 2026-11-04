@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -304,19 +304,19 @@
 
     <!-- Client-Side Architecture & Crossref Live Database Engine -->
     <script>
-        const STORAGE_KEY = 'pub_system_publications_data';
+                const STORAGE_KEY = 'pub_system_publications_v4';
 
         const DEFAULT_PUBLICATIONS = [
             {
                 id: 1,
                 title: "Attention Is All You Need",
                 doi: "10.48550/arXiv.1706.03762",
-                authors: "Ashish Vaswani, Noam Shazeer, Niki Parmar",
+                authors: "Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones",
                 publicationYear: 2017,
                 journal: "Advances in Neural Information Processing Systems (NeurIPS)",
-                citationsCount: 134200,
+                citationsCount: 142000,
                 verificationStatus: "VERIFIED",
-                verificationNotes: "Official landmark transformer paper verified."
+                verificationNotes: "Official landmark transformer architecture paper verified in literature."
             },
             {
                 id: 2,
@@ -325,20 +325,559 @@
                 authors: "Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun",
                 publicationYear: 2016,
                 journal: "IEEE Conference on Computer Vision and Pattern Recognition (CVPR)",
-                citationsCount: 179426,
+                citationsCount: 185000,
                 verificationStatus: "VERIFIED",
-                verificationNotes: "Official paper verified in IEEE."
+                verificationNotes: "Official ResNet landmark paper verified in IEEE."
             },
             {
                 id: 3,
                 title: "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
                 doi: "10.18653/v1/N19-1423",
-                authors: "Jacob Devlin, Ming-Wei Chang, Kenton Lee",
+                authors: "Jacob Devlin, Ming-Wei Chang, Kenton Lee, Kristina Toutanova",
                 publicationYear: 2019,
                 journal: "NAACL-HLT",
-                citationsCount: 84500,
+                citationsCount: 89000,
                 verificationStatus: "VERIFIED",
-                verificationNotes: "Official paper verified in NAACL."
+                verificationNotes: "Official paper verified in NAACL registry."
+            },
+            {
+                id: 4,
+                title: "Adam: A Method for Stochastic Optimization",
+                doi: "10.48550/arXiv.1412.6980",
+                authors: "Diederik P. Kingma, Jimmy Ba",
+                publicationYear: 2015,
+                journal: "International Conference on Learning Representations (ICLR)",
+                citationsCount: 165000,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Landmark optimization paper verified."
+            },
+            {
+                id: 5,
+                title: "Generative Adversarial Nets",
+                doi: "10.1145/3422622",
+                authors: "Ian Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley",
+                publicationYear: 2014,
+                journal: "Advances in Neural Information Processing Systems (NeurIPS)",
+                citationsCount: 68000,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Original GAN architecture paper verified."
+            },
+            {
+                id: 6,
+                title: "Mastering the Game of Go with Deep Neural Networks and Tree Search",
+                doi: "10.1038/nature16961",
+                authors: "David Silver, Aja Huang, Chris J. Maddison, Arthur Guez",
+                publicationYear: 2016,
+                journal: "Nature",
+                citationsCount: 15400,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Landmark AlphaGo paper verified in Nature."
+            },
+            {
+                id: 7,
+                title: "ImageNet Classification with Deep Convolutional Neural Networks",
+                doi: "10.1145/3065386",
+                authors: "Alex Krizhevsky, Ilya Sutskever, Geoffrey E. Hinton",
+                publicationYear: 2012,
+                journal: "Communications of the ACM",
+                citationsCount: 148000,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Landmark AlexNet convolutional network paper verified."
+            },
+            {
+                id: 8,
+                title: "Language Models are Few-Shot Learners",
+                doi: "10.48550/arXiv.2005.14165",
+                authors: "Tom B. Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan",
+                publicationYear: 2020,
+                journal: "NeurIPS",
+                citationsCount: 34500,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Landmark GPT-3 architecture paper verified."
+            },
+            {
+                id: 9,
+                title: "YOLO9000: Better, Faster, Stronger",
+                doi: "10.1109/CVPR.2017.690",
+                authors: "Joseph Redmon, Ali Farhadi",
+                publicationYear: 2017,
+                journal: "IEEE CVPR",
+                citationsCount: 24500,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Real-time object detection verified."
+            },
+            {
+                id: 10,
+                title: "ResNeXt: Aggregated Residual Transformations for Deep Neural Networks",
+                doi: "10.1109/CVPR.2017.634",
+                authors: "Saining Xie, Ross Girshick, Piotr Dollar, Zhuowen Tu, Kaiming He",
+                publicationYear: 2017,
+                journal: "IEEE CVPR",
+                citationsCount: 18200,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Multi-branch architecture verified."
+            },
+            {
+                id: 11,
+                title: "An Analysis of Fault Injection in Modern Distributed Microservices",
+                doi: "10.1109/TSE.2026.342110",
+                authors: "Manish Tanwar, Sarah Jenkins, David Kumar",
+                publicationYear: 2026,
+                journal: "IEEE Transactions on Software Engineering",
+                citationsCount: 14,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Original experimental study on cloud resiliency."
+            },
+            {
+                id: 12,
+                title: "Deep Residual Learning for Image Recognition - 2026 Edition",
+                doi: "10.1109/FAKE.2026.01",
+                authors: "M. Sharma, A. Gupta",
+                publicationYear: 2026,
+                journal: "International Conference on Artificial Intelligence",
+                citationsCount: 0,
+                verificationStatus: "REJECTED",
+                verificationNotes: "[DUPLICATE DETECTED] (96% Match)! Exact re-submission of He et al. (CVPR 2016, 185k citations)."
+            },
+            {
+                id: 13,
+                title: "BERT: Deep Transformer Model for Language Processing",
+                doi: "10.18653/FAKE.2026.02",
+                authors: "R. Verma, K. Patel",
+                publicationYear: 2026,
+                journal: "Journal of Computer Applications",
+                citationsCount: 0,
+                verificationStatus: "REJECTED",
+                verificationNotes: "[DUPLICATE DETECTED] (88% Match)! Paraphrased submission of Devlin et al. (NAACL 2019)."
+            },
+            {
+                id: 14,
+                title: "Secure Multiparty Computation for Decentralized Medical Records",
+                doi: "10.1109/TDSC.2025.339820",
+                authors: "Elena Rostova, Marcus Chen, Priya Nair",
+                publicationYear: 2025,
+                journal: "IEEE Transactions on Dependable and Secure Computing",
+                citationsCount: 86,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Cryptographic protocol verified in IEEE TDSC."
+            },
+            {
+                id: 15,
+                title: "Spanner: Google\u0027s Globally-Distributed Database",
+                doi: "10.1145/2491245",
+                authors: "James C. Corbett, Jeffrey Dean, Michael Epstein, Andrew Fikes",
+                publicationYear: 2013,
+                journal: "ACM Transactions on Computer Systems (TOCS)",
+                citationsCount: 5200,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Official landmark distributed database paper."
+            },
+            {
+                id: 16,
+                title: "In Search of an Understandable Consensus Algorithm (Raft)",
+                doi: "10.5555/2643634.2643666",
+                authors: "Diego Ongaro, John Ousterhout",
+                publicationYear: 2014,
+                journal: "USENIX Annual Technical Conference (ATC)",
+                citationsCount: 6100,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Landmark distributed consensus paper verified."
+            },
+            {
+                id: 17,
+                title: "Attention Mechanisms in Deep Learning Networks",
+                doi: "10.48550/FAKE.2026.03",
+                authors: "V. Reddy, S. Nair",
+                publicationYear: 2026,
+                journal: "Open Preprint Service",
+                citationsCount: 0,
+                verificationStatus: "REJECTED",
+                verificationNotes: "[DUPLICATE DETECTED] (78% Match)! High similarity to Vaswani et al. (NeurIPS 2017)."
+            },
+            {
+                id: 18,
+                title: "Real-Time Bug Detection in Java Applications Using Bytecode Instrumentation",
+                doi: "10.1145/3611643.3616280",
+                authors: "Manish Tanwar, Neha Singhal, Rajesh Malhotra",
+                publicationYear: 2026,
+                journal: "ACM Symposium on the Foundations of Software Engineering (FSE)",
+                citationsCount: 8,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Original research paper on Java bytecode analysis."
+            },
+            {
+                id: 19,
+                title: "Zero-Knowledge Proofs for Privacy-Preserving Layer-2 Blockchains",
+                doi: "10.1109/SP.2025.10129",
+                authors: "Alexander Wright, Chen Wei, Lucas Tremblay",
+                publicationYear: 2025,
+                journal: "IEEE Symposium on Security and Privacy (S\u0026P)",
+                citationsCount: 120,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Cryptographic zk-SNARK verification paper."
+            },
+            {
+                id: 20,
+                title: "Edge Computing Architecture for Smart Grid Sensor Networks",
+                doi: "10.1109/JIOT.2024.331290",
+                authors: "K. Srinivasan, Fatima Al-Zahra, John Miller",
+                publicationYear: 2024,
+                journal: "IEEE Internet of Things Journal",
+                citationsCount: 430,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "IoT telemetry and edge routing paper verified."
+            },
+            {
+                id: 21,
+                title: "Dynamic Voltage and Frequency Scaling in Multi-Core Mobile Processors",
+                doi: "10.1109/TVLSI.2023.328901",
+                authors: "Hao Zhang, Takashi Tanaka, Brian O\u0027Connor",
+                publicationYear: 2023,
+                journal: "IEEE Transactions on VLSI Systems",
+                citationsCount: 210,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "VLSI hardware architecture paper verified."
+            },
+            {
+                id: 22,
+                title: "Large Language Models are Few Shot Learners Re-evaluated",
+                doi: "10.48550/FAKE.2026.04",
+                authors: "S. Chawla, P. Kulkarni",
+                publicationYear: 2026,
+                journal: "AI Research Forum",
+                citationsCount: 0,
+                verificationStatus: "REJECTED",
+                verificationNotes: "[DUPLICATE DETECTED] (86% Match)! Near duplicate of Brown et al. (GPT-3, NeurIPS 2020)."
+            },
+            {
+                id: 23,
+                title: "Automated Vulnerability Scanning in Containerized CI/CD Pipelines",
+                doi: "10.5555/3642100.3642125",
+                authors: "Rachel Foster, Kevin Zhao, Liam Henderson",
+                publicationYear: 2026,
+                journal: "USENIX Security Symposium",
+                citationsCount: 28,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "DevSecOps vulnerability scanning framework verified."
+            },
+            {
+                id: 24,
+                title: "Federated Learning for Cross-Silo Healthcare Analytics Without Patient Data Exposure",
+                doi: "10.1038/s41746-025-01290-x",
+                authors: "Siddharth Menon, Angela Rossi, Christian Weber",
+                publicationYear: 2025,
+                journal: "Nature Digital Medicine",
+                citationsCount: 380,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Clinical federated learning trial paper."
+            },
+            {
+                id: 25,
+                title: "Quantum Key Distribution Protocols Under High-Noise Atmospheric Turbulence",
+                doi: "10.1103/PhysRevApplied.21.044012",
+                authors: "Niels Lindholm, Sophia Morozova, Arthur Pendelton",
+                publicationYear: 2024,
+                journal: "Physical Review Applied",
+                citationsCount: 95,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Quantum cryptography protocol verified in APS."
+            },
+            {
+                id: 26,
+                title: "Microservice Latency Optimization via Reinforcement Learning Driven Thread Pools",
+                doi: "10.1145/3639100.3639140",
+                authors: "Vikram Aditya, Daniel Becker, Fiona Gallagher",
+                publicationYear: 2026,
+                journal: "ACM SIGMETRICS Performance Evaluation Review",
+                citationsCount: 12,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Cloud computing performance modeling paper."
+            },
+            {
+                id: 27,
+                title: "Generative Adversarial Networks: A Duplicate Survey",
+                doi: "10.1145/FAKE.2026.05",
+                authors: "D. Ghosh, B. Banerjee",
+                publicationYear: 2026,
+                journal: "Computer Science Review Notes",
+                citationsCount: 0,
+                verificationStatus: "REJECTED",
+                verificationNotes: "[DUPLICATE DETECTED] (82% Match)! Significant title overlap with Goodfellow et al. (2014)."
+            },
+            {
+                id: 28,
+                title: "Self-Supervised Vision Transformers for Cancer Pathology Whole-Slide Imaging",
+                doi: "10.1016/j.media.2025.103190",
+                authors: "Guillaume Mercier, Sunita Rao, Patrick Evans",
+                publicationYear: 2025,
+                journal: "Medical Image Analysis",
+                citationsCount: 290,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Medical computational pathology paper verified."
+            },
+            {
+                id: 29,
+                title: "High-Throughput Packet Processing Using eBPF and XDP in Linux Kernels",
+                doi: "10.1109/TNET.2024.338210",
+                authors: "Mads Mikkelsen, Alexei Smirnov, Robert Lang",
+                publicationYear: 2024,
+                journal: "IEEE/ACM Transactions on Networking",
+                citationsCount: 175,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Linux kernel programmable networking paper verified."
+            },
+            {
+                id: 30,
+                title: "Deep Learning for Autonomous Driving: Perception, Localization and Planning",
+                doi: "10.1109/TITS.2023.3276100",
+                authors: "Wei Huang, Jessica Campbell, Klaus Fischer",
+                publicationYear: 2023,
+                journal: "IEEE Transactions on Intelligent Transportation Systems",
+                citationsCount: 1250,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Comprehensive autonomous vehicle systems survey."
+            },
+            {
+                id: 31,
+                title: "Automated Refactoring of Legacy Monoliths to Event-Driven Microservices",
+                doi: "10.1109/MS.2026.341200",
+                authors: "Manish Tanwar, Anita Desai",
+                publicationYear: 2026,
+                journal: "IEEE Software",
+                citationsCount: 3,
+                verificationStatus: "PENDING",
+                verificationNotes: "Currently under peer review for IEEE Software."
+            },
+            {
+                id: 32,
+                title: "Detecting Phantom Read Anomalies in Highly-Concurrent SQL Isolation Levels",
+                doi: "10.1145/3650100.3650150",
+                authors: "Girish Kulkarni, Benjamin Stone, Li Na",
+                publicationYear: 2025,
+                journal: "ACM SIGMOD International Conference on Management of Data",
+                citationsCount: 84,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Database concurrency control paper verified in SIGMOD."
+            },
+            {
+                id: 33,
+                title: "Adam Optimizer: Re-implementation and Benchmarks in 2026",
+                doi: "10.48550/FAKE.2026.06",
+                authors: "K. Raman, T. Joshi",
+                publicationYear: 2026,
+                journal: "Open Source Journal",
+                citationsCount: 0,
+                verificationStatus: "REJECTED",
+                verificationNotes: "[DUPLICATE DETECTED] (91% Match)! Re-packaging of Kingma \u0026 Ba (ICLR 2015, 165k citations)."
+            },
+            {
+                id: 34,
+                title: "Homomorphic Encryption for Outsourced Cloud Database Computations",
+                doi: "10.1145/3627106.3627199",
+                authors: "Carlos Mendez, Alistair Vance, Zoya Petrov",
+                publicationYear: 2024,
+                journal: "ACM Conference on Computer and Communications Security (CCS)",
+                citationsCount: 540,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Cloud cryptographic privacy paper verified in CCS."
+            },
+            {
+                id: 35,
+                title: "Energy-Harvesting Routing Protocols in Underwater Wireless Sensor Networks",
+                doi: "10.1109/JSEN.2025.334190",
+                authors: "Tariq Mansoor, Deborah King, Eric Thorne",
+                publicationYear: 2025,
+                journal: "IEEE Sensors Journal",
+                citationsCount: 115,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Acoustic underwater sensor network paper verified."
+            },
+            {
+                id: 36,
+                title: "Graph Neural Networks for Drug Target Interaction Prediction",
+                doi: "10.1093/bioinformatics/btae120",
+                authors: "Liang Shen, Rebecca Taylor, Oliver Schmidt",
+                publicationYear: 2024,
+                journal: "Bioinformatics (Oxford Academic)",
+                citationsCount: 880,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Bioinformatics molecular interaction paper verified."
+            },
+            {
+                id: 37,
+                title: "Explainable AI for Financial Credit Risk Assessment Using SHAP and LIME",
+                doi: "10.1016/j.eswa.2025.121900",
+                authors: "Aditi Saxena, Francois Dubois, Kenneth Cole",
+                publicationYear: 2025,
+                journal: "Expert Systems with Applications",
+                citationsCount: 310,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Interpretability in financial modeling paper verified."
+            },
+            {
+                id: 38,
+                title: "YOLO: Real-Time Object Detection Framework",
+                doi: "10.1109/FAKE.2026.07",
+                authors: "A. Tiwari, S. Mishra",
+                publicationYear: 2026,
+                journal: "Global Journal of Computer Vision",
+                citationsCount: 0,
+                verificationStatus: "REJECTED",
+                verificationNotes: "[DUPLICATE DETECTED] (90% Match)! Direct clone of Joseph Redmon\u0027s YOLO paper."
+            },
+            {
+                id: 39,
+                title: "Energy-Efficient Task Offloading in 6G Heterogeneous Vehicular Edge Networks",
+                doi: "10.1109/TWC.2026.340112",
+                authors: "Hassan Al-Nuaimi, Meera Pillai, Chen Long",
+                publicationYear: 2026,
+                journal: "IEEE Transactions on Wireless Communications",
+                citationsCount: 19,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Next-generation vehicular edge computing paper verified."
+            },
+            {
+                id: 40,
+                title: "Formal Verification of Smart Contracts Using Symbolic Execution and SMT Solvers",
+                doi: "10.1145/3649800.3649850",
+                authors: "Domenico Rossi, Katherine Bell, Simon Fraser",
+                publicationYear: 2025,
+                journal: "ACM SIGPLAN OOPSLA",
+                citationsCount: 160,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Ethereum bytecode symbolic verification paper."
+            },
+            {
+                id: 41,
+                title: "Multi-Modal Fusion of EEG and fMRI Signals for Neurodegenerative Diagnosis",
+                doi: "10.1109/TBME.2026.341908",
+                authors: "Bhavna Swaminathan, Julian Richter, Chloe Dupont",
+                publicationYear: 2026,
+                journal: "IEEE Transactions on Biomedical Engineering",
+                citationsCount: 42,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Biomedical neural signal processing paper verified."
+            },
+            {
+                id: 42,
+                title: "Scalable Semantic Search Over Trillion-Token Codebases",
+                doi: "10.1145/3661100.3661150",
+                authors: "Manish Tanwar, Harish Raghavan",
+                publicationYear: 2026,
+                journal: "ACM International Conference on Software Engineering (ICSE)",
+                citationsCount: 8,
+                verificationStatus: "PENDING",
+                verificationNotes: "Under technical review at ICSE 2026."
+            },
+            {
+                id: 43,
+                title: "Mitigation of Prompt Injection Attacks in Production LLM Agents",
+                doi: "10.1109/SP.2026.10490",
+                authors: "Zachary Hayes, Linette Gomez, Farhan Qureshi",
+                publicationYear: 2026,
+                journal: "IEEE Symposium on Security and Privacy (S\u0026P)",
+                citationsCount: 65,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "AI agent security and firewalling paper verified."
+            },
+            {
+                id: 44,
+                title: "High-Performance Graph Analytics on NVMe Solid-State Drives",
+                doi: "10.14778/3641200.3641230",
+                authors: "Tobias Lindqvist, Sun-Woo Park, Martin Vance",
+                publicationYear: 2025,
+                journal: "Proceedings of the VLDB Endowment",
+                citationsCount: 76,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Storage engine graph processing paper verified in VLDB."
+            },
+            {
+                id: 45,
+                title: "Mastering Go Game via Reinforcement Learning - Resubmission",
+                doi: "10.1038/FAKE.2026.08",
+                authors: "N. Kapoor, V. Sethi",
+                publicationYear: 2026,
+                journal: "Computational Game Letters",
+                citationsCount: 0,
+                verificationStatus: "REJECTED",
+                verificationNotes: "[DUPLICATE DETECTED] (95% Match)! Re-submission of DeepMind\u0027s AlphaGo landmark paper."
+            },
+            {
+                id: 46,
+                title: "Privacy-Preserving Contact Tracing via Cryptographic Handshakes",
+                doi: "10.1145/3544548",
+                authors: "Carmela Troncoso, Mathias Payer, Jean-Pierre Hubaux",
+                publicationYear: 2023,
+                journal: "Communications of the ACM",
+                citationsCount: 820,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "DP-3T cryptographic decentralized tracing paper verified."
+            },
+            {
+                id: 47,
+                title: "Real-Time 3D Gaussian Splatting for High-Fidelity Radiance Field Reconstruction",
+                doi: "10.1145/3592433",
+                authors: "Bernhard Kerbl, Georgios Kopanas, Thomas Leimkuehler, George Drettakis",
+                publicationYear: 2024,
+                journal: "ACM Transactions on Graphics (SIGGRAPH)",
+                citationsCount: 1420,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Landmark 3D reconstruction computer graphics paper verified."
+            },
+            {
+                id: 48,
+                title: "Compiler Optimizations for Sparse Tensor Computations on GPU Accelerators",
+                doi: "10.1109/CGO.2026.341100",
+                authors: "Rohan Sengupta, Laura Bennett",
+                publicationYear: 2026,
+                journal: "IEEE/ACM International Symposium on Code Generation and Optimization",
+                citationsCount: 11,
+                verificationStatus: "PENDING",
+                verificationNotes: "Under final peer review at CGO 2026."
+            },
+            {
+                id: 49,
+                title: "Zero-Day Malware Detection Using System Call Graph Embeddings",
+                doi: "10.1016/j.cose.2025.103980",
+                authors: "Sergei Romanov, Ayesha Siddiqui, Gregory House",
+                publicationYear: 2025,
+                journal: "Computers \u0026 Security",
+                citationsCount: 190,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Behavioral host intrusion detection paper verified."
+            },
+            {
+                id: 50,
+                title: "Transformer-Based Code Translation Across Strongly-Typed Programming Languages",
+                doi: "10.1109/TR.2026.342990",
+                authors: "Manish Tanwar, Christopher Nolan, Pooja Bhatt",
+                publicationYear: 2026,
+                journal: "IEEE Transactions on Reliability",
+                citationsCount: 24,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "Code translation verification and correctness paper."
+            },
+            {
+                id: 51,
+                title: "Adaptive Congestion Control for Low-Latency Ultra-Reliable 5G Slices",
+                doi: "10.1109/JSAC.2026.341820",
+                authors: "Faisal Ibrahim, Svetlana Ivanova, Neil Armstrong",
+                publicationYear: 2026,
+                journal: "IEEE Journal on Selected Areas in Communications",
+                citationsCount: 37,
+                verificationStatus: "VERIFIED",
+                verificationNotes: "URLLC cellular scheduling paper verified in JSAC."
+            },
+            {
+                id: 52,
+                title: "Spanner Database Architecture Revisited",
+                doi: "10.1145/FAKE.2026.09",
+                authors: "G. Narang, J. Chadha",
+                publicationYear: 2026,
+                journal: "National Database Conference Proceedings",
+                citationsCount: 0,
+                verificationStatus: "REJECTED",
+                verificationNotes: "[DUPLICATE DETECTED] (89% Match)! Duplicate of Google Spanner (Corbett et al., 2013)."
             }
         ];
 
@@ -511,11 +1050,11 @@
             const alreadyExists = highestSim >= 0.70;
             let verdict = '';
             if (highestSim >= 0.85) {
-                verdict = `🚨 EXACT DUPLICATE DETECTED (${Math.round(highestSim * 100)}% Match)! A publication titled "${topMatch.title}" was already published in ${topMatch.journal} (${topMatch.year}) with ${Number(topMatch.citations).toLocaleString()} citations!`;
+                verdict = `ðŸš¨ EXACT DUPLICATE DETECTED (${Math.round(highestSim * 100)}% Match)! A publication titled "${topMatch.title}" was already published in ${topMatch.journal} (${topMatch.year}) with ${Number(topMatch.citations).toLocaleString()} citations!`;
             } else if (highestSim >= 0.70) {
-                verdict = `🚨 HIGH SIMILARITY DETECTED (${Math.round(highestSim * 100)}% Match). Similar research is already published by ${topMatch.authors} (${topMatch.year}).`;
+                verdict = `ðŸš¨ HIGH SIMILARITY DETECTED (${Math.round(highestSim * 100)}% Match). Similar research is already published by ${topMatch.authors} (${topMatch.year}).`;
             } else {
-                verdict = `✅ ORIGINAL RESEARCH: No duplicate found in global academic registries. Eligible to publish!`;
+                verdict = `âœ… ORIGINAL RESEARCH: No duplicate found in global academic registries. Eligible to publish!`;
             }
 
             return {
@@ -539,11 +1078,11 @@
                     pub.verificationStatus = 'REJECTED';
                     pub.verificationNotes = result.verdict;
                     if (result.topMatch) pub.citationsCount = result.topMatch.citations;
-                    showToast('🚨 Auto-Rejected: Duplicate paper detected!', 'error');
+                    showToast('ðŸš¨ Auto-Rejected: Duplicate paper detected!', 'error');
                 } else {
                     pub.verificationStatus = 'VERIFIED';
                     pub.verificationNotes = result.verdict;
-                    showToast('✅ Verified: Original work approved!', 'success');
+                    showToast('âœ… Verified: Original work approved!', 'success');
                 }
                 saveStoredPublications(list);
                 renderTable();
@@ -583,12 +1122,12 @@
                 if (data.alreadyExists) {
                     verdictBox.className = 'p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-900';
                     verdictIcon.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-600 text-xl"></i>`;
-                    verdictTitle.innerText = `🚨 AUTO-REJECT: PUBLICATION ALREADY EXISTS (${data.maxSimilarityPercentage}% MATCH)`;
+                    verdictTitle.innerText = `ðŸš¨ AUTO-REJECT: PUBLICATION ALREADY EXISTS (${data.maxSimilarityPercentage}% MATCH)`;
                     verdictMessage.innerText = data.verdict;
                 } else {
                     verdictBox.className = 'p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900';
                     verdictIcon.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 text-xl"></i>`;
-                    verdictTitle.innerText = `✅ NO DUPLICATE FOUND - ORIGINAL RESEARCH`;
+                    verdictTitle.innerText = `âœ… NO DUPLICATE FOUND - ORIGINAL RESEARCH`;
                     verdictMessage.innerText = data.verdict;
                 }
 
@@ -604,7 +1143,7 @@
                                 <div class="text-slate-600 mt-0.5"><span class="font-medium">Authors:</span> ${escapeHtml(m.authors)}</div>
                                 <div class="text-slate-500 mt-0.5">
                                     <span class="font-medium">Published:</span> ${m.year || 'N/A'} in <span class="italic">${escapeHtml(m.journal)}</span>
-                                    • Citations: <span class="font-bold text-indigo-600">${Number(m.citations).toLocaleString()}</span>
+                                    â€¢ Citations: <span class="font-bold text-indigo-600">${Number(m.citations).toLocaleString()}</span>
                                 </div>
                             </div>
                             <div class="text-right flex-shrink-0">
@@ -648,9 +1187,9 @@
                 if (check.alreadyExists) {
                     status = 'REJECTED';
                     if (check.topMatch) citations = check.topMatch.citations;
-                    alert('⚠️ AUTO-REJECTED DUPLICATE!\n\nThis paper is already published in global literature:\n\n' + check.verdict);
+                verificationNotes: "[DUPLICATE DETECTED]!\n\nThis paper is already published in global literature:\n\n' + check.verdict);
                 } else {
-                    showToast('✅ Saved & verified as original research!', 'success');
+                    showToast('âœ… Saved & verified as original research!', 'success');
                 }
 
                 if (id) {
@@ -726,7 +1265,7 @@
                 item.innerHTML = `
                     <div>
                         <div class="font-semibold text-slate-900">${escapeHtml(p.title)}</div>
-                        <div class="text-slate-500">${escapeHtml(p.authors)} (${p.publicationYear}) • Citations: ${Number(p.citationsCount || 0).toLocaleString()}</div>
+                        <div class="text-slate-500">${escapeHtml(p.authors)} (${p.publicationYear}) â€¢ Citations: ${Number(p.citationsCount || 0).toLocaleString()}</div>
                     </div>
                     <span class="px-2 py-0.5 rounded text-[11px] font-bold ${p.verificationStatus === 'VERIFIED' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
                         ${p.verificationStatus}
@@ -824,3 +1363,4 @@
     </script>
 </body>
 </html>
+
